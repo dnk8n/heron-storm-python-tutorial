@@ -1,0 +1,6 @@
+storm.zookeeper.servers:
+  - demo-storm-zookeeper
+nimbus.seeds:
+  - demo-storm-nimbus
+storm.log.dir: /logs
+storm.local.dir: /data

@@ -1,0 +1,79 @@
+version: "3.6"
+
+services:
+
+  demo-heron:
+    image: heron/heron:0.17.5
+    container_name: demo-heron
+    volumes:
+      - ./:/tmp/host/
+    ports:
+      - 2001:8889
+    networks:
+      - heron
+
+  demo-storm-zookeeper:
+    image: zookeeper:3.4.11
+    container_name: demo-storm-zookeeper
+    volumes:
+      - ./:/tmp/host/
+    networks:
+      - storm
+
+  demo-storm-nimbus:
+    image: storm:1.2.1
+    container_name: demo-storm-nimbus
+    volumes:
+      - ./:/tmp/host/
+    command: storm nimbus
+    volumes:
+      - ./config/storm/storm.yaml:/conf/storm.yaml
+    networks:
+      - storm
+    depends_on:
+      - demo-storm-zookeeper
+
+  demo-storm-supervisor:
+    build: ./build/storm-supervisor/.
+    image: dnk8n/demo-storm-supervisor:1.2.1
+    container_name: demo-storm-supervisor
+    command: storm supervisor
+    volumes:
+      - ./:/tmp/host/
+      - ./config/storm/storm.yaml:/conf/storm.yaml
+    networks:
+      - storm
+    depends_on:
+      - demo-storm-nimbus
+      - demo-storm-zookeeper
+
+  demo-storm-ui:
+    image: storm:1.2.1
+    container_name: demo-storm-ui
+    command: storm ui
+    volumes:
+      - ./:/tmp/host/
+      - ./config/storm/storm.yaml:/conf/storm.yaml
+    ports:
+      - 3001:8080
+    networks:
+      - storm
+    depends_on:
+      - demo-storm-nimbus
+      - demo-storm-supervisor
+      - demo-storm-zookeeper
+
+  demo-helper:
+    build: ./build/helper/.
+    image: dnk8n/demo-helper-alpine:3.7
+    container_name: demo-helper
+    tty: true
+    volumes:
+      - ./:/tmp/host/
+    networks:
+      - heron
+      - storm
+
+networks:
+  heron:
+  storm:

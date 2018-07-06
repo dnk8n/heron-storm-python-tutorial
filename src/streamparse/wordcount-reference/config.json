@@ -1,0 +1,25 @@
+{
+    "serializer": "json",
+    "topology_specs": "topologies/",
+    "virtualenv_specs": "virtualenvs/",
+    "envs": {
+        "demo": {
+            "user": "storm",
+            "nimbus": "demo-storm-nimbus",
+            "workers": [
+                "demo-storm-supervisor"
+            ],
+            "log": {
+                "path": "/var/log/storm/streamparse",
+                "file": "pystorm_{topology_name}_{component_name}_{task_id}_{pid}.log",
+                "max_bytes": 1000000,
+                "backup_count": 10,
+                "level": "info"
+            },
+            "use_ssh_for_nimbus": false,
+            "install_virtualenv": false,
+            "virtualenv_root": "/data/streamparse-venvs",
+            "use_virtualenv": true
+        }
+    }
+}

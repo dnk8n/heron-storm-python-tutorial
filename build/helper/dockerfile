@@ -1,0 +1,57 @@
+FROM alpine:3.7
+
+RUN \
+    # Add demo user
+    adduser -D -g '' demo && \
+    \
+    # Update package sources
+    apk update && \
+    \
+    # Upgrade packages
+    apk upgrade && \
+    \
+    # Install build dependencies, grouping them so that they can be easily be deleted later
+    apk add --virtual .build-dependencies \
+        build-base \
+        gcc \
+        libc-dev \
+        libffi-dev \
+        libressl-dev \
+        musl-dev \
+        python-dev \
+    && \
+    \
+    # Install bash and java, required for lein (a streamparse requirement)
+    # Install git (could be handy later) and ssh (required for submitting topologies to both heron and storm)
+    apk add \
+        bash \
+        openjdk8-jre \
+        git \
+        openssh \
+    && \
+    \
+    # Install lein
+    wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -P /usr/local/bin/ && \
+    chmod 0755 /usr/local/bin/lein && \
+    \
+    # Clear apk cache, to save space in resulting image
+    rm -rf /var/cache/apk/*
+
+USER demo
+
+RUN \
+    # Install pip and virualenv
+    export PATH=$PATH:$HOME/.local/bin && \
+    wget https://bootstrap.pypa.io/get-pip.py -P /tmp/ && \
+    python2.7 /tmp/get-pip.py --user && \
+    pip install virtualenv --user && \
+    \
+    # Create streamparse virtual environment
+    mkdir -p $HOME/src/streamparse/python27/venv && \
+    virtualenv -p python2.7 $HOME/src/streamparse/python27/venv && \
+    $HOME/src/streamparse/python27/venv/bin/pip --no-cache-dir install streamparse && \
+    \
+    # Create heronpy virtual environment
+    mkdir -p $HOME/src/heronpy/python27/venv && \
+    virtualenv -p python2.7 $HOME/src/heronpy/python27/venv && \
+    $HOME/src/heronpy/python27/venv/bin/pip --no-cache-dir install heronpy
